@@ -1,6 +1,7 @@
 # 대한민국 헌법 텍스트 수집 및 분석 실습
+
 - 데이터 수집 사이트: https://ko.wikisource.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%ED%97%8C%EB%B2%95_(%EC%A0%9C10%ED%98%B8) 
-- 데이터 분석 결과물: 
+- 데이터 분석 결과물: https://github.com/Jiseong-Michael-Yang/web_scrapying_handson/blob/master/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%20%ED%97%8C%EB%B2%95.png
 
 1. Anaconda 설치
 - 설치 사이트: https://www.anaconda.com/products/individual
@@ -16,6 +17,145 @@
 - 이전 단계에서 만들었던 "python_const" 폴더 선택
 - 파일명 "handson.py"로 변경한다음 저장
 
+3. 코드 작성
+# 라이브러리 설치
+!pip install --upgrade pip
+!pip install beautifulsoup4 collection wordcloud matplotlib requests pandas numpy kiwipiepy
+
+# 필요한 라이브러리 불러오기
+from bs4 import BeautifulSoup
+from collections import Counter
+from wordcloud import WordCloud
+import os
+import matplotlib.pyplot as plt
+import requests
+import pandas as pd
+import re
+import numpy as np
+from kiwipiepy import Kiwi
+
+#%% 가) 데이터 수집
+
+# 페이지 소스 가져오기
+result = []
+
+# 접속정보 (구글에서 "check my user agent" 검색)
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36"
+}
+
+# 요청을 보내는 URL
+url = "https://ko.wikisource.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%ED%97%8C%EB%B2%95_(%EC%A0%9C10%ED%98%B8)"
+
+# 서버에 요청을 보내고 응답 받기
+response = requests.get(url, headers=headers)
+html = response.text
+
+# HTML 확인 및 파싱
+soup = BeautifulSoup(html, "html.parser")
+
+# CSS 선택자 (전문)
+css_preface = "div.mw-parser-output blockquote"
+preface = soup.select(css_preface)
+preface_text = [preface[0].string]
+print(preface_text)
+
+# CSS 선택자 (조문-조)
+css_provision_li = lambda x: fr"""span[id="{str(x)}"]"""
+
+# 조문-조 텍스트 추출
+provision_li_text = []
+for i in range(1, 131):
+    provision_li_text.append(soup.select_one(css_provision_li(i)).parent.text)
+
+print(provision_li_text[:20])
+
+# CSS 선택자 (조문-항)
+css_provision_dd = "div.mw-parser-output dd"
+
+# 조문-항 텍스트 추출
+provision_dd = soup.select(css_provision_dd)
+provision_dd_text = list(map(lambda x: x.text, provision_dd))
+print(provision_dd_text[:20])
+
+# 전문+조+항 합치기
+const_text_raw = preface_text + provision_li_text + provision_dd_text
+print(const_text_raw[:20])
+
+#%% 나) 데이터 전처리
+
+# 텍스트 리스트 series로 변환
+const_text_raw = pd.Series(const_text_raw)
+print(const_text_raw.head(20))
+
+# 불용어(조항번호, 기호, 공백 등) 정규표현식 정의
+pat_numbering = re.compile("제\d{1,}조")
+pat_nonchar = re.compile("[^가-힣]")
+pat_whitespaces = re.compile("\s{2,}")
+
+# 불용어 제거
+const_text_cleansed = (
+     const_text_raw.map(lambda x: re.sub(pat_numbering, " ", x))
+    .map(lambda x: re.sub(pat_nonchar, " ", x))
+    .map(lambda x: re.sub(pat_whitespaces, " ", x))
+    .map(lambda x: x.strip())
+    )
+
+print(const_text_cleansed.head(20))
+
+# 텍스트 합치기
+text_pooled = " ".join(const_text_cleansed)
+print(text_pooled[:500])
+
+# 토크나이징
+kiwi = Kiwi()
+kiwi.prepare()
+pos_tagging = kiwi.analyze(text_pooled)[0][0]
+print(pos_tagging[:20])
+
+# 명사추출
+pat_noun = re.compile("NN[GP]")
+nouns = []
+for token, pos, _, _ in pos_tagging:
+    if bool(re.match(pat_noun, pos)) and len(token) > 1:
+        nouns.append(token)
+print(nouns[:50])
+
+#%% 다) 데이터 분석
+
+# 기술통계량
+print("총 단어 개수: "+str(len(nouns))+"개")
+print("총 어휘 수(고유단어): "+str(len(np.unique(nouns)))+"개")
+
+# 빈도수 확인
+pd.set_option('display.max_rows', None)
+count = Counter(nouns)
+words = dict(count.most_common())
+words_df = pd.DataFrame(words, index=["빈도"]).T
+words_df.head(20)
+
+#%% 라) 데이터 시각화
+
+# 한글 폰트 설정
+font_path = r"C:\python_const\font.ttf"
+
+# 워드클라우드 객체 생성
+wordcloud = WordCloud(
+    font_path = font_path,
+    background_color="white",
+    colormap= "Accent_r",
+    width = 1500, 
+    height = 1500)
+
+wordcloud_words = wordcloud.generate_from_frequencies(words)
+wordcloud_array = wordcloud.to_array()
+
+# 워드클라우드 그리기
+fig = plt.figure(figsize=(20, 20))
+plt.imshow(wordcloud_array)
+plt.axis("off")
+plt.show()
+fig.savefig("대한민국헌법.png")
 
 
 
