@@ -9,13 +9,14 @@
 2. 작업 폴더 만들기
 - 내 컴퓨터에서 C 드라이브 들어가기
 - 새 폴더 만들고 "python_const"로 이름 바꾸기
+- 폴더 안에 "font.ttf" 파일 저장
 
 2. Spyder 실행 및 폴더 열기
 - 윈도우 로고 키 누르고 "Spyder" 검색
 - File 탭에서 "New File" 선택
 - 이어서 다시 File 탭에서 "Save as" 선택
 - 이전 단계에서 만들었던 "python_const" 폴더 선택
-- 파일명 "handson.py"로 변경한다음 저장
+- 파일명 "handson.py"로 변경한 다음 저장
 
 3. 코드 작성
 # 라이브러리 설치
@@ -26,13 +27,13 @@
 from bs4 import BeautifulSoup
 from collections import Counter
 from wordcloud import WordCloud
+from kiwipiepy import Kiwi
 import os
 import matplotlib.pyplot as plt
 import requests
 import pandas as pd
 import re
 import numpy as np
-from kiwipiepy import Kiwi
 
 #%% 가) 데이터 수집
 
@@ -47,7 +48,7 @@ headers = {
 # 요청을 보내는 URL
 url = "https://ko.wikisource.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%ED%97%8C%EB%B2%95_(%EC%A0%9C10%ED%98%B8)"
 
-# 서버에 요청을 보내고 응답 받기
+# 서버에 요청 보내고 응답 받기
 response = requests.get(url, headers=headers)
 html = response.text
 
@@ -156,6 +157,3 @@ plt.imshow(wordcloud_array)
 plt.axis("off")
 plt.show()
 fig.savefig("대한민국헌법.png")
-
-
-
