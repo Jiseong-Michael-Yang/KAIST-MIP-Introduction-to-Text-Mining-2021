@@ -1,0 +1,21 @@
+# 대한민국 헌법 텍스트 수집 및 분석 실습
+- 데이터 수집 사이트: https://ko.wikisource.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%ED%97%8C%EB%B2%95_(%EC%A0%9C10%ED%98%B8) 
+- 데이터 분석 결과물: 
+
+1. Anaconda 설치
+- 설치 사이트: https://www.anaconda.com/products/individual
+
+2. 작업 폴더 만들기
+- 내 컴퓨터에서 C 드라이브 들어가기
+- 새 폴더 만들고 "python_const"로 이름 바꾸기
+
+2. Spyder 실행 및 폴더 열기
+- 윈도우 로고 키 누르고 "Spyder" 검색
+- File 탭에서 "New File" 선택
+- 이어서 다시 File 탭에서 "Save as" 선택
+- 이전 단계에서 만들었던 "python_const" 폴더 선택
+- 파일명 "handson.py"로 변경한다음 저장
+
+
+
+
